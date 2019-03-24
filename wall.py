@@ -11,9 +11,37 @@ DESIGN_FACTORS = {"riser": 0.6, "seabed": 0.72}
 
 
 def pressure_head(h, rho, g=9.81):
-    """Calculate the pressure head. 
+    """Calculate the fluid pressure head.
+
+    Parameters
+    ----------
+    h : array : Water depth [m]
+    rho : array : Fluid density [kg/m^3]
+    g : float : Acceleration of gravitiy [m/s/s]
+
+    Returns
+    -------
+    P_h : array : Pressure head [Pa]
     """
     return rho * g * h
+
+
+def internal_pressure(P_d, h, rho_c, h_ref=0):
+    """Calculate the internal pressure of the pipeline at the seabed.
+
+    Parameters
+    ----------
+    P_d : array : Design pressure [Pa]
+    h : array : Water depth [m]
+    rho_c : array : Contents density [kg/m^3]
+    h_ref : array : Reference height [m]
+
+    Returns
+    -------
+    P_i : array : Internal pressure [Pa]
+    """
+    P_h = pressure_head(h + h_ref, rho_c)
+    return P_d + P_h
 
 
 def min_hoop_thickness(D_o, delta_P, sigma_y, location):
@@ -63,27 +91,25 @@ def nom_hoop_thickness(t_min, t_corr, f_tol):
     ----------
     t_min : array : Minimum wall thickness [m]
     t_corr : array : Corrosion allowance [m]
-    f_tol : array : Fabrication tolerance [m]
+    f_tol : array : Fabrication tolerance [-]
 
     Returns
     -------
     t_nom : array : Nominal wall thickness [m]
     """
 
-    try:
-        return (t_min + t_corr) / (1 - f_tol)
-    except ZeroDivisionError:
-        raise ZeroDivisionError("Divide by zero. Check fabrication tolerance.")
+    # return zero if denominator is zero (i.e. 100% f_tol)
+    return np.where(1 - f_tol, (t_min + t_corr) / (1 - f_tol), 0)
 
 
-def collapse_thickness(P_e, sig_y_d, E, v, D_o, f_0, f_s=2):
+def collapse_thickness(P_e, sigma_y, E, v, D_o, f_0, f_s=2):
     """Calculate the nominal wall thickness for local buckling due to external
     pressure (PD8010-2 Clause G.1.2).
 
     Parameters
     ----------
     P_e : array : External pressure [Pa]
-    sig_y_d : array : De-rated yield strength [Pa]
+    sigma_y : array : Pipe yield strength [Pa]
     E : array : Young's modulus [Pa]
     v : array : Poisson's ratio [-]
     D_o : array : Outside diameter [m]
@@ -107,7 +133,7 @@ def collapse_thickness(P_e, sig_y_d, E, v, D_o, f_0, f_s=2):
     def P_y(t):
         """Calculate the yield pressure (PD8010-2 Equation G.3).
         """
-        return 2 * sig_y_d * (t / D_o)
+        return 2 * sigma_y * (t / D_o)
 
     def char_resist(t):
         """Calculate the characteristic resistance for external pressure
@@ -140,46 +166,53 @@ def buckle_thickness(D_o, P_p, sigma_y):
     return D_o * (P_p / (10.7 * sigma_y)) ** (4 / 9)
 
 
-def internal_pressure(P_d, h, rho_c, h_ref=0):
-    """Calculate the internal pressure of the pipeline at the seabed.
+def wall_thicknesses(
+    P_d, h_ref, rho_c, x, location, D_o, h, sigma_y, t_corr, f_tol, E, v, f_0
+):
+    """Calculate nominal wall thicknesses in accordance with PD 8010-2.
     """
-    P_h = pressure_head(h + h_ref, rho_c)
-    return P_d + P_h
+
+    P_i = internal_pressure(P_d, h, rho_c, h_ref)
+    P_e = pressure_head(h, rho_sw)
+    delta_P = abs(P_i - P_e)
+    hoop_min, _ = min_hoop_thickness(D_o, delta_P, sigma_y, location)
+    hoop_nom = nom_hoop_thickness(hoop_min, t_corr, f_tol)
+    collapse_nom = v_collapse_thickness(P_e, sigma_y, E, v, D_o, f_0)
+    buckle_nom = buckle_thickness(D_o, P_e, sigma_y)
+    required = np.maximum.reduce([hoop_nom, collapse_nom, buckle_nom])
+
+    return np.array([x, hoop_nom, collapse_nom, buckle_nom, required])
 
 
-if __name__ == "__main__":
-
-    location = np.array(["seabed", "seabed"])
-    x = np.array([0, 1])
-    D_o = np.array([0.2731, 0.2731])
-    h = np.array([200, 50])
+if __name__ == "__main__":  # pragma: no cover
 
     P_d = 380e5
     h_ref = 24
-
     rho_sw = 1025
     rho_c = 10
 
-    P_i = internal_pressure(P_d, h, rho_c, h_ref)
-
+    x = np.array([0, 1])
+    location = np.array(["seabed", "seabed"])
+    D_o = np.array([0.2731, 0.2731])
+    h = np.array([200, 50])
     sigma_y = np.array([427e6, 427e6])
     t_corr = np.array([0.001, 0.001])
     f_tol = np.array([0.125, 0.125])
     E = np.array([207e9, 207e9])
     v = np.array([0.3, 0.3])
-    f_0 = np.array([0.025, 0.025])
+    f_0 = np.array([0.01, 0.01])
 
-    P_e = pressure_head(h, rho_sw)
-    delta_P = abs(P_i - P_e)
+    wts = wall_thicknesses(
+        P_d, h_ref, rho_c, x, location, D_o, h, sigma_y, t_corr, f_tol, E, v, f_0
+    )
 
-    hoop_min, ratio = min_hoop_thickness(D_o, delta_P, sigma_y, location)
-    hoop_nom = nom_hoop_thickness(hoop_min, t_corr, f_tol)
-    collapse_nom = v_collapse_thickness(P_e, sigma_y, E, v, D_o, f_0)
-    buckle_nom = buckle_thickness(D_o, P_e, sigma_y)
+    from tabulate import tabulate
 
-    required = np.maximum.reduce([hoop_nom, collapse_nom, buckle_nom])
+    headers = ["KP [m]", "Hoop [m]", "Collapse [m]", "Buckle [m]", "Required [m]"]
+    print(tabulate(np.transpose(wts), headers, tablefmt="psql"))
 
     from plot import plot_wall_thicknesses
 
-    plot = plot_wall_thicknesses(x, hoop_nom, collapse_nom, buckle_nom)
+    plot = plot_wall_thicknesses(wts)
     plot.savefig("wall_plot.png")
+
