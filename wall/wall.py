@@ -196,3 +196,22 @@ def wall_thicknesses(
 
     return np.array([x, hoop_nom, collapse_nom, buckle_nom, required])
 
+
+if __name__ == "__main__":
+    wts = wall_thicknesses(
+        P_d=100e5,
+        h_ref=0,
+        rho_c=900,
+        x=1,
+        location="seabed",
+        D_o=0.1,
+        h=100,
+        sigma_y=450e6,
+        t_corr=0,
+        f_tol=0.125,
+        E=207e9,
+        v=0.3,
+        f_0=0.025,
+        rho_sw=1025,
+    )
+    print(wts)
