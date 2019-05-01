@@ -1,9 +1,3 @@
-"""
-Author: Ben Randerson
-Date: 20/03/19
-Description: Wall thickness design in accordance with PD 8010-2.
-"""
-
 import numpy as np
 from scipy.optimize import newton
 

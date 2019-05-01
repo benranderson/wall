@@ -8,7 +8,7 @@ import pandas as pd
 from tabulate import tabulate
 
 from wall import wall_thicknesses
-from wall.plot import plot_wall_thicknesses
+from wall import plot_wall_thicknesses
 
 
 @click.command()

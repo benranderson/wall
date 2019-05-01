@@ -1,0 +1,14 @@
+[build-system]
+requires = ["flit", "click", "tabulate", "numpy", "scipy", "matplotlib"]
+build-backend = "flit.buildapi"
+
+[tool.flit.metadata]
+module = "wall"
+author = "Ben Randerson"
+author-email = "ben.m.randerson@gmail.com"
+home-page = "https://github.com/benranderson/wall"
+requires-python = ">=3.6"
+description-file = "README.md"
+
+[tool.flit.scripts]
+wall = "wall.__main__:main"
