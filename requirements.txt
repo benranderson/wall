@@ -4,6 +4,3 @@ scipy==1.2.1
 pandas==0.24.2
 tabulate==0.8.3
 Click==7.0
-pytest==4.4.0
-pytest-cov==2.7.1
-flit==1.3
