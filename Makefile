@@ -53,17 +53,18 @@ clean-test: ## remove test and coverage artifacts
 lint: ## check style with flake8
 	flake8 wall tests
 
-test: ## run tests quickly with the default Python
+test: ## run tests
 	py.test
 
 test-all: ## run tests on every Python version with tox
 	tox
 
-coverage: ## check code coverage quickly with the default Python
-	coverage run --source wall -m pytest
-	coverage report -m
-	coverage html
+cover: ## check code coverage
+	pytest --cov-report term --cov-report html --cov=wall/ tests/ -v
 	$(BROWSER) htmlcov/index.html
+
+cover-ci: ## check code coverage for Travis CI
+	pytest --cov=wall/ tests/ -v
 
 docs: ## generate Sphinx HTML documentation, including API docs
 	rm -f docs/wall.rst
