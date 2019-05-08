@@ -64,7 +64,9 @@ cover: ## check code coverage
 	$(BROWSER) htmlcov/index.html
 
 test-ci: ## test and check code coverage for Travis CI
-	pytest --cov=wall/ tests/ -v
+	coverage run --source wall -m pytest tests/
+	coverage report -m
+	coverage html
 
 docs: ## generate Sphinx HTML documentation, including API docs
 	rm -f docs/wall.rst
