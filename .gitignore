@@ -1,6 +1,10 @@
 # other
 .benchmarks/
 
+# Inputs and Outputs
+InputData.csv
+*.png
+
 # IDE
 .vscode/
 
