@@ -56,5 +56,5 @@ def main(args=None):
     plot.savefig("wall_plot.png")
 
 
-if __name__ == "__main__":
-    sys.exit(main())  # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
+    sys.exit(main())

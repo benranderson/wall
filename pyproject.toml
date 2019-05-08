@@ -1,5 +1,5 @@
 [build-system]
-requires = ["flit", "click", "tabulate", "numpy", "scipy", "matplotlib"]
+requires = ["flit", "click", "tabulate", "numpy", "scipy", "matplotlib", "pytest"]
 build-backend = "flit.buildapi"
 
 [tool.flit.metadata]

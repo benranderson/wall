@@ -191,7 +191,7 @@ def wall_thicknesses(
     return np.array([x, hoop_nom, collapse_nom, buckle_nom, required])
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     wts = wall_thicknesses(
         P_d=100e5,
         h_ref=0,
