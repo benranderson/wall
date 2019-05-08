@@ -12,9 +12,13 @@ python:
 
 # command to install dependencies
 install:
-    - pip install flit pytest pytest-cov
+    - pip install flit pytest pytest-cov codecov
     - flit install
 
 # command to run tests
 script:
     - make test-ci
+
+# push the results back to codecov
+after_success:
+  - codecov
