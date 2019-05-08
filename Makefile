@@ -63,7 +63,7 @@ cover: ## check code coverage
 	pytest --cov-report term --cov-report html --cov=wall/ tests/ -v
 	$(BROWSER) htmlcov/index.html
 
-cover-ci: ## check code coverage for Travis CI
+test-ci: ## test and check code coverage for Travis CI
 	pytest --cov=wall/ tests/ -v
 
 docs: ## generate Sphinx HTML documentation, including API docs
