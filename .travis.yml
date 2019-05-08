@@ -22,7 +22,7 @@ install:
   - export LANG=en_GB.UTF-8
   - export COVERAGE_DIR=":$HOME/htmlcov"
   - printenv | sort
-  - flit install
+  - python -m flit install
 
 # command to run tests
 script:
