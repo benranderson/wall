@@ -1,5 +1,6 @@
 # other
 .benchmarks/
+wily-report.html
 
 # Inputs and Outputs
 InputData.csv
