@@ -17,14 +17,14 @@ def main(args=None):
     P_d = 380e5
     h_ref = 24
     rho_sw = 1025
-    rho_c = 100
+    rho_c = 900
 
     i = pd.read_csv("InputData.csv")
 
     x = i["KP"].values
     location = i["Location"].values
     D_o = i["D_o"].values
-    h = i["h"].values
+    h = np.absolute(i["h"].values)
     sigma_y = i["sigma_y"].values
     t_corr = i["t_corr"].values
     f_tol = i["f_tol"].values
